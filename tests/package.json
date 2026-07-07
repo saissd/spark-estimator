@@ -1,0 +1,13 @@
+{
+  "name": "spark-estimator-tests",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests for the Spark Homes Repair Estimator (Playwright).",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}

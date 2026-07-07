@@ -1,0 +1,12 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# nothing to build — keep vendored libs committed so the app works offline
+node_modules/
+
+# Playwright test artifacts
+test-results/
+playwright-report/
+.playwright/
