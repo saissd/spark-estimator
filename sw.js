@@ -10,12 +10,13 @@
  * activate.
  * ============================================================ */
 
-const CACHE_VERSION = 'spark-v1';
+const CACHE_VERSION = 'spark-v2';
 const SHELL = [
   './',
   './index.html',
   './css/styles.css',
   './js/data.js',
+  './js/calc.js',
   './js/store.js',
   './js/export.js',
   './js/ocr.js',

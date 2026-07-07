@@ -5,7 +5,8 @@
   "description": "End-to-end tests for the Spark Homes Repair Estimator (Playwright).",
   "scripts": {
     "test": "playwright test",
-    "test:headed": "playwright test --headed"
+    "test:headed": "playwright test --headed",
+    "test:unit": "node --test unit/calc.test.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1"

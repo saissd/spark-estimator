@@ -67,7 +67,7 @@ const Store = (() => {
   function getGlobalPrices() { return readJSON(K_PRICES, null); }
   function setGlobalPrices(map) { writeJSON(K_PRICES, map); }
   function resetGlobalPrices() {
-    try { localStorage.removeItem(K_PRICES); } catch {}
+    try { localStorage.removeItem(K_PRICES); } catch { /* storage unavailable (private mode) — safe to ignore */ }
   }
 
   // ---------- IndexedDB (photos) ----------

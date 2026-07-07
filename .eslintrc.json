@@ -1,0 +1,23 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2022": true, "node": true },
+  "parserOptions": { "ecmaVersion": 2022, "sourceType": "script" },
+  "globals": {
+    "SPARK_DATA": "readonly",
+    "Calc": "readonly",
+    "Store": "readonly",
+    "Exporter": "readonly",
+    "OCR": "readonly",
+    "App": "writable",
+    "XLSX": "readonly",
+    "JSZip": "readonly",
+    "Tesseract": "readonly"
+  },
+  "rules": {
+    "no-var": "error",
+    "prefer-const": "warn",
+    "eqeqeq": ["warn", "smart"],
+    "semi": ["warn", "always"],
+    "no-empty": ["warn", { "allowEmptyCatch": true }]
+  }
+}

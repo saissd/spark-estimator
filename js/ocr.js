@@ -83,7 +83,7 @@ const OCR = (() => {
 
   // Optional: free the worker (e.g. low-memory). Safe to call anytime.
   async function dispose() {
-    try { if (_worker) await _worker.terminate(); } catch {}
+    try { if (_worker) await _worker.terminate(); } catch { /* worker already gone — best-effort cleanup */ }
     _worker = null; _workerPromise = null;
   }
 

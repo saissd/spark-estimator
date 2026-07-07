@@ -23,13 +23,10 @@ function esc(s) {
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
   ));
 }
-function money(n) {
-  const v = Math.round(Number(n) || 0);
-  return '$' + v.toLocaleString('en-US');
-}
-function moneyExact(n) {
-  return '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+// Formatting + deal math live in calc.js (pure + unit-tested); thin wrappers
+// keep the existing call sites unchanged.
+const money = (n) => Calc.money(n);
+const moneyExact = (n) => Calc.moneyExact(n);
 function fmtDate(iso) {
   if (!iso) return '';
   try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
@@ -456,22 +453,10 @@ function patchDerived() {
 function renderDealView() {
   const d = App.project.deal || {};
   const repair = grandTotal();
-  const purchase = parseFloat(d.purchase) || 0;
-  const arv = parseFloat(d.arv) || 0;
-  const extra = parseFloat(d.extra) || 0;
-  const totalCost = purchase + repair + extra;
-  const profit = arv - totalCost;
-  const roi = totalCost > 0 ? profit / totalCost : null;
-  const hasInputs = purchase > 0 || arv > 0;
-
-  // Verdict heuristic (house-flipping rule of thumb): ROI >= 15% go,
-  // 5–15% caution, < 5% no-go.
-  let cls = 'caution', badge = 'Enter numbers';
-  if (hasInputs && roi != null) {
-    if (roi >= 0.15) { cls = 'go'; badge = '✅ Good Deal'; }
-    else if (roi >= 0.05) { cls = 'caution'; badge = '⚠ Thin Margin'; }
-    else { cls = 'nogo'; badge = '⛔ Pass'; }
-  }
+  const m = Calc.dealMetrics({ purchase: d.purchase, arv: d.arv, extra: d.extra, repair });
+  const { purchase, arv, extra, totalCost, profit, roi, hasInputs, cls, badge } = m;
+  const goPct = Math.round(Calc.GOOD_DEAL_ROI * 100);
+  const thinPct = Math.round(Calc.THIN_MARGIN_ROI * 100);
 
   return `
   <header class="appbar">
@@ -489,6 +474,7 @@ function renderDealView() {
       <div class="deal__profit">${hasInputs ? money(profit) : '—'}</div>
       <div class="deal__roi">${roi != null && hasInputs ? `Projected profit · ${(roi * 100).toFixed(1)}% return on cost` : 'Estimated profit after repairs'}</div>
     </div>
+    <p class="deal__rule">Rule of thumb: ≥${goPct}% return on cost is a Good Deal, ${thinPct}–${goPct}% is a Thin Margin, below ${thinPct}% is a Pass.</p>
 
     <div class="deal__lines">
       <div class="deal__line"><span class="muted">Purchase price</span><span>${money(purchase)}</span></div>
@@ -766,7 +752,7 @@ async function onClick(e) {
     case 'install-app': {
       if (App.deferredInstall) {
         App.deferredInstall.prompt();
-        try { await App.deferredInstall.userChoice; } catch {}
+        try { await App.deferredInstall.userChoice; } catch { /* user dismissed the install prompt — nothing to do */ }
         App.deferredInstall = null;
         refreshInstallUI();
       } else {
@@ -982,19 +968,8 @@ function patchDealLive() {
   if (!wrap || !lines) return;
   const d = App.project.deal;
   const repair = grandTotal();
-  const purchase = parseFloat(d.purchase) || 0;
-  const arv = parseFloat(d.arv) || 0;
-  const extra = parseFloat(d.extra) || 0;
-  const totalCost = purchase + repair + extra;
-  const profit = arv - totalCost;
-  const roi = totalCost > 0 ? profit / totalCost : null;
-  const hasInputs = purchase > 0 || arv > 0;
-  let cls = 'caution', badge = 'Enter numbers';
-  if (hasInputs && roi != null) {
-    if (roi >= 0.15) { cls = 'go'; badge = '✅ Good Deal'; }
-    else if (roi >= 0.05) { cls = 'caution'; badge = '⚠ Thin Margin'; }
-    else { cls = 'nogo'; badge = '⛔ Pass'; }
-  }
+  const { purchase, arv, extra, totalCost, profit, roi, hasInputs, cls, badge } =
+    Calc.dealMetrics({ purchase: d.purchase, arv: d.arv, extra: d.extra, repair });
   wrap.className = 'deal__verdict ' + cls;
   wrap.querySelector('.deal__badge').textContent = badge;
   wrap.querySelector('.deal__profit').textContent = hasInputs ? money(profit) : '—';
@@ -1139,12 +1114,8 @@ function buildExportModel() {
 
   const repair = grandTotal();
   const d = App.project.deal || {};
-  const purchase = parseFloat(d.purchase) || 0;
-  const arv = parseFloat(d.arv) || 0;
-  const extra = parseFloat(d.extra) || 0;
-  const totalCost = purchase + repair + extra;
-  const profit = arv - totalCost;
-  const roi = totalCost > 0 ? profit / totalCost : null;
+  const { purchase, arv, extra, profit, roi } =
+    Calc.dealMetrics({ purchase: d.purchase, arv: d.arv, extra: d.extra, repair });
 
   return {
     projectName: App.project.name,
